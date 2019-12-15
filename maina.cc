@@ -20,8 +20,8 @@ struct timeval tp_start, tp_end;
 // global variables
 
 ulong idletime, tidletime;
-char *myname;
 ulong ms_start, ms_end;
+char *myname;
 
 // functions
 ulong measuremilliseconds(int flag=0);
