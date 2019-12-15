@@ -18,7 +18,6 @@ typedef unsigned long ulong;
 struct timeval tp_start, tp_end;
 
 // global variables
-
 ulong idletime, tidletime;
 ulong ms_start, ms_end;
 char *myname;
