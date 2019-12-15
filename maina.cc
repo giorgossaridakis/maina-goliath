@@ -74,7 +74,6 @@ int main(int argc, char *argv[])
      else
       for (i=optind;i<argc;i++)
    logmessage(argv[i], line); }
-    
   
  return 0;
 }
