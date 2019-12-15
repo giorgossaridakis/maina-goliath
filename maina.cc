@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
    strcpy(logfile, argv[optind]);
   watchtime*=1000;
   
-   // loop until idle limit
+   // loop until idle limit or empty line
    while (!abortonidle) {
     measuremilliseconds();
     twatchtime=0;
