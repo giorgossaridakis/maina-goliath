@@ -1,7 +1,6 @@
-// Maina - copy from stdin to file - abort in determined idle time
+// Maina - copy from stdin to file(s) - abort in determined idle time
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
 #include <termios.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
@@ -11,10 +10,8 @@
 using namespace std;
 
 // standard measures, if not defined by argv parameters
-#define WATCHTIME 10 // seconds
-#define LOGFILE "maina.log" // keep logfile
+#define IDLETIME 10 // seconds
 #define MAXLINE 9999
-#define MAXNAME 50
 
 // definitions
 typedef unsigned long ulong;
@@ -22,31 +19,30 @@ struct timeval tp_start, tp_end;
 
 // global variables
 
-ulong watchtime, twatchtime;
-char *myname, logfile[MAXNAME];
+ulong idletime, tidletime;
+char *myname;
 ulong ms_start, ms_end;
 
 // functions
 ulong measuremilliseconds(int flag=0);
 void showusage();
-void logmessage(char *message);
+void logmessage(char *filename, char *message);
 int kbhit(void);
 
 int main(int argc, char *argv[])
 {
-  int i, c, abortonidle=0;
+  int i, c, abortonidle=0, standardoutput=0;
   char line[MAXLINE];
   // standard settings
   myname=argv[0];
-  watchtime=WATCHTIME;
-  strcpy(logfile, LOGFILE);
-  
+  idletime=IDLETIME;
+
   // parse command line options
   while ((c = getopt(argc, argv, ":t:")) != -1)
    switch (c) {
 	case 't':
      if (atoi(optarg))
-      watchtime=atoi(optarg);
+      idletime=atoi(optarg);
      else
       showusage();
     break;
@@ -56,26 +52,28 @@ int main(int argc, char *argv[])
     default:
      abort();
   break; }
-  // retrieve logfile, if there
-  if (optind<argc)
-   strcpy(logfile, argv[optind]);
-  watchtime*=1000;
+  // output to stdout or to file
+  if (optind==argc)
+   standardoutput=1;
+  idletime*=1000;
   
-   // loop until idle limit or empty line
+   // loop until idle limit
    while (!abortonidle) {
     measuremilliseconds();
-    twatchtime=0;
-    while ((twatchtime=measuremilliseconds(1))<watchtime) {
+    tidletime=0;
+    while ((tidletime=measuremilliseconds(1))<idletime) {
      if (kbhit())
     break; }
-    if (twatchtime==watchtime) {
+    if (tidletime==idletime) {
      abortonidle=1;
     break; }
     // read input, direct to outfile
     cin >> line;
-    if (!strlen(line))
-     abortonidle=1;
-   logmessage(line); }
+     if (standardoutput)
+      cout << line << endl;
+     else
+      for (i=optind;i<argc;i++)
+   logmessage(argv[i], line); }
     
   
  return 0;
@@ -98,14 +96,14 @@ ulong measuremilliseconds(int flag)
 // show daemon usage
 void showusage()
 {
-  cout << myname << " [-t stream idle seconds] [file]" << "\n";
+  cout << myname << " [-t stream idle seconds] [files ...]" << "\n";
  exit (1);
 }
 
 
-void logmessage(char *message)
+void logmessage(char *filename, char *message)
 {
-  FILE *outlogfile=fopen(logfile, "a");
+  FILE *outlogfile=fopen(filename, "a");
   
    fprintf(outlogfile,"%s\n", message);
   fclose(outlogfile);
