@@ -121,6 +121,10 @@ void daemonize()
 	for (i=getdtablesize();i>=0;--i) close(i); /* close all descriptors */
     i=open("/dev/null",O_RDWR); dup(i); dup(i); /* handle standart I/O */
 	umask(027); /* set newly created file permissions */
+	signal(SIGCHLD,SIG_IGN); /* ignore child */
+	signal(SIGTSTP,SIG_IGN); /* ignore tty signals */
+	signal(SIGTTOU,SIG_IGN);
+	signal(SIGTTIN,SIG_IGN);
     while (1) {
     // start milliseconds measurement
     measuremilliseconds();
@@ -145,11 +149,6 @@ void daemonize()
      logmessage(outlog.str());
     remove(watchfile); }
     ++period; }
-
-	signal(SIGCHLD,SIG_IGN); /* ignore child */
-	signal(SIGTSTP,SIG_IGN); /* ignore tty signals */
-	signal(SIGTTOU,SIG_IGN);
-	signal(SIGTTIN,SIG_IGN);
 }
 
 void logmessage(string message)
